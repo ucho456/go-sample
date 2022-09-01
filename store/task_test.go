@@ -4,34 +4,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/go-cmp/cmp"
+	"github.com/jmoiron/sqlx"
 	"github.com/ucho456/go_todo_app/clock"
 	"github.com/ucho456/go_todo_app/entity"
 	"github.com/ucho456/go_todo_app/testutil"
 )
-
-func TestRepository_ListTasks(t *testing.T) {
-	t.Skip()
-	ctx := context.Background()
-	// entity.Taskを作成する他のテストケースと混ざるとテストがフェイルする。
-	// そのため、トランザクションをはることでこのテストケースの中だけのテーブル状態にする。
-	tx, err := testutil.OpenDBForTest(t).BeginTxx(ctx, nil)
-	// このテストケースが完了したら元に戻す
-	t.Cleanup(func() { _ = tx.Rollback() })
-	if err != nil {
-		t.Fatal(err)
-	}
-	wants := prepareTasks(ctx, t, tx)
-
-	sut := &Repository{}
-	gots, err := sut.ListTasks(ctx, tx)
-	if err != nil {
-		t.Fatalf("unexected error: %v", err)
-	}
-	if d := cmp.Diff(gots, wants); len(d) != 0 {
-		t.Errorf("differs: (-got +want)\n%s", d)
-	}
-}
 
 func prepareTasks(ctx context.Context, t *testing.T, con Execer) entity.Tasks {
 	t.Helper()
@@ -75,4 +54,57 @@ func prepareTasks(ctx context.Context, t *testing.T, con Execer) entity.Tasks {
 	wants[1].ID = entity.TaskID(id + 1)
 	wants[2].ID = entity.TaskID(id + 2)
 	return wants
+}
+
+func TestRepository_ListTasks(t *testing.T) {
+	ctx := context.Background()
+	// entity.Taskを作成する他のテストケースと混ざるとテストがフェイルする。
+	// そのため、トランザクションをはることでこのテストケースの中だけのテーブル状態にする。
+	tx, err := testutil.OpenDBForTest(t).BeginTxx(ctx, nil)
+	// このテストケースが完了したら元に戻す
+	t.Cleanup(func() { _ = tx.Rollback() })
+	if err != nil {
+		t.Fatal(err)
+	}
+	wants := prepareTasks(ctx, t, tx)
+
+	sut := &Repository{}
+	gots, err := sut.ListTasks(ctx, tx)
+	if err != nil {
+		t.Fatalf("unexected error: %v", err)
+	}
+	if d := cmp.Diff(gots, wants); len(d) != 0 {
+		t.Errorf("differs: (-got +want)\n%s", d)
+	}
+}
+
+func TestRepository_AddTask(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	c := clock.FixedClocker{}
+	var wantID int64 = 20
+	okTask := &entity.Task{
+		Title:    "ok task",
+		Status:   "todo",
+		Created:  c.Now(),
+		Modified: c.Now(),
+	}
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	mock.ExpectExec(
+		// エスケープが必要
+		`INSERT INTO task \(title, status, created, modified\) VALUES \(\?, \?, \?, \?\)`,
+	).WithArgs(okTask.Title, okTask.Status, c.Now(), c.Now()).
+		WillReturnResult(sqlmock.NewResult(wantID, 1))
+
+	xdb := sqlx.NewDb(db, "mysql")
+	r := &Repository{Clocker: c}
+	if err := r.AddTask(ctx, xdb, okTask); err != nil {
+		t.Errorf("want no error, but got %v", err)
+	}
 }
