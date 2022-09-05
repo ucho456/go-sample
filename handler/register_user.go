@@ -42,7 +42,7 @@ func (ru *RegisterUser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rsp := struct {
-		ID entity.UserID `json: "id"`
+		ID entity.UserID `json:"id"`
 	}{ID: u.ID}
 	RespondJSON(ctx, w, rsp, http.StatusOK)
 }
