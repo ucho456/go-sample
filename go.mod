@@ -20,8 +20,12 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
+	github.com/goccy/go-json v0.9.11 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
+	github.com/lestrrat-go/jwx/v2 v2.0.6 // indirect
+	github.com/lestrrat-go/option v1.0.0 // indirect
+	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
 	golang.org/x/text v0.3.7 // indirect
