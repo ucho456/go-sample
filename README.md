@@ -1,2 +1,2 @@
-# go-todo-app
-goで作成したAPI server
+# go-sample
+goで作成したAPI serverのサンプルです。
