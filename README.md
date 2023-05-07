@@ -1,1 +1,2 @@
-# go_todo_app
+# go-todo-app
+goで作成したAPI server
