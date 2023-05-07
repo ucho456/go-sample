@@ -1,2 +1,2 @@
 # go-sample
-goで作成したAPI serverのサンプルです。
+this is a sample API server created in Go.
